@@ -34,6 +34,16 @@ ROI_CONFIG_PATH = "roi_config.json"  # 検査範囲(ROI)の保存先。01_captur
 # ================================================================
 
 
+def draw_text_clamped(img, text, x, y, font_scale=0.7, color=(255, 255, 255), thickness=2):
+    """画面からはみ出さないように位置を自動調整してテキストを描画する"""
+    font = cv2.FONT_HERSHEY_SIMPLEX
+    (text_w, text_h), _ = cv2.getTextSize(text, font, font_scale, thickness)
+    h, w = img.shape[:2]
+    x = max(5, min(x, w - text_w - 5))
+    y = max(text_h + 5, min(y, h - 5))
+    cv2.putText(img, text, (x, y), font, font_scale, color, thickness)
+
+
 def load_interpreter(model_path):
     """TFLiteモデルを読み込む"""
     if not os.path.exists(model_path):
@@ -89,11 +99,10 @@ def select_roi_live(cap, window_name="Select ROI"):
         if state["start"] and state["end"]:
             color = (0, 200, 0) if state["locked"] else (0, 255, 255)
             cv2.rectangle(display, state["start"], state["end"], color, 2)
-        guide = "2回目クリックで終点確定 → Enter/Space:選択確定" if state["locked"] else \
-            "1回目クリック:始点 → 2回目クリック:終点" if state["start"] is None else \
-            "マウス移動で範囲追従 → クリックで終点確定"
-        cv2.putText(display, f"{guide}  ESC:キャンセル",
-                    (20, display.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+        guide = "2nd click:end pt -> Enter/Space:OK" if state["locked"] else \
+            "1st click:start  2nd click:end" if state["start"] is None else \
+            "Move mouse, click to set end"
+        draw_text_clamped(display, f"{guide}  ESC:Cancel", 20, display.shape[0] - 20, font_scale=0.6)
 
         cv2.imshow(window_name, display)
         key = cv2.waitKey(1) & 0xFF
@@ -185,8 +194,7 @@ def main():
         color = (0, 200, 0) if is_ok else (0, 0, 255)
 
         cv2.rectangle(frame, (x, y), (x + w, y + h), color, 3)
-        cv2.putText(frame, label, (x, max(y - 15, 25)),
-                    cv2.FONT_HERSHEY_SIMPLEX, 1.0, color, 2)
+        draw_text_clamped(frame, label, x, max(y - 15, 25), font_scale=1.0, color=color)
 
         cv2.imshow("AI Inspection", frame)
 
