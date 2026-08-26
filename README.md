@@ -4,7 +4,7 @@
 持参いただいたワーク（検査対象物）を撮影し、OK/NG判定モデルを作成、PCとRaspberry Piの両方で判定を再現します。
 
 > **研修が終わったら**：1つのROIで判定するこのSTEP1に対して、複数の検査ポイント（ROI）を
-> シーンごとにまとめて判定できる現場導入向けの発展版を用意しています。
+> シーンごとにまとめて判定できる発展版を用意しています。
 > → [ai-inspection-multiscene](https://github.com/inspectlab7q/ai-inspection-multiscene)（STEP2）
 
 ## プログラム構成
