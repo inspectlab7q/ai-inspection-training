@@ -58,39 +58,9 @@ git --version
 
 ## 3. プログラムの取得と仮想環境の準備
 
-STEP1（このリポジトリ）だけを使うか、STEP2（[ai-inspection-multiscene](https://github.com/inspectlab7q/ai-inspection-multiscene)）も
-一緒に使うかで、フォルダの作り方が少し変わります。**STEP1・STEP2の`requirements.txt`は中身が同じ**なので、
-両方使う場合は仮想環境を1つにまとめられます。
-
-**1行ずつ**Enterを押して実行してください（複数行まとめて貼り付けると、`git clone`の途中経過表示に
-紛れて次の行が実行されないことがあるため）。
-
-### A. STEP1だけ使う場合
-
-```bash
-cd Desktop
-```
-
-```bash
-git clone https://github.com/inspectlab7q/ai-inspection-training.git
-```
-
-```bash
-cd ai-inspection-training
-```
-
-```bash
-python -m venv .venv
-```
-
-```bash
-.venv\Scripts\activate
-```
-
-### B. STEP1とSTEP2を両方使う場合（推奨構成）
-
+STEP1とSTEP2（[ai-inspection-multiscene](https://github.com/inspectlab7q/ai-inspection-multiscene)）を両方使う前提の手順。
 親フォルダを1つ作り、その中にSTEP1・STEP2をそれぞれサブフォルダとして`clone`し、
-仮想環境は親フォルダに1つだけ作ります。
+仮想環境は親フォルダに1つだけ作ります（**STEP1・STEP2の`requirements.txt`は中身が同じ**なので共有できる）。
 
 ```
 Desktop\
@@ -99,6 +69,9 @@ Desktop\
     1\                     ← STEP1 (ai-inspection-training)
     2\                     ← STEP2 (ai-inspection-multiscene)
 ```
+
+**1行ずつ**Enterを押して実行してください（複数行まとめて貼り付けると、`git clone`の途中経過表示に
+紛れて次の行が実行されないことがあるため）。
 
 ```bash
 cd Desktop
@@ -128,18 +101,18 @@ python -m venv .venv
 .venv\Scripts\activate
 ```
 
-どちらの場合も、`activate`を実行した後にプロンプトの先頭へ `(.venv)` と表示されればOKです。
+`activate`を実行した後にプロンプトの先頭へ `(.venv)` と表示されればOKです。
 以降のコマンドは、必ずこの `(.venv)` が表示された状態で実行してください。
 
-> コマンドプロンプトを一度閉じて後日また作業する場合は、Aなら`ai-inspection-training`フォルダ、
-> Bなら`ai-inspection`フォルダ（`1`や`2`の中ではなく、その一つ上）に移動した上で、
-> もう一度 `.venv\Scripts\activate` を実行してください（`python -m venv .venv` は最初の1回だけでよい）。
-> Bの構成でSTEP1・STEP2のプログラムを実行するときは、`(.venv)`を有効にしたまま
+> コマンドプロンプトを一度閉じて後日また作業する場合は、`ai-inspection`フォルダ（`1`や`2`の中ではなく、
+> その一つ上）に移動した上で、もう一度 `.venv\Scripts\activate` を実行してください
+> （`python -m venv .venv` は最初の1回だけでよい）。
+> STEP1・STEP2のプログラムを実行するときは、`(.venv)`を有効にしたまま
 > `cd 1`（STEP1）または`cd 2`（STEP2）で該当フォルダに移動してから実行してください。
 
 ## 4. ライブラリの導入
 
-Aの場合はそのまま、Bの場合は`1`か`2`のどちらかに一度`cd`してから実行します（内容は同じなので片方でOK）。
+`1`か`2`のどちらかに一度`cd`してから実行します（`requirements.txt`の内容は同じなので片方でOK）。
 
 ```bash
 pip install -r requirements.txt
@@ -180,7 +153,7 @@ python -c "import tensorflow as tf; tf.keras.applications.MobileNetV2(weights='i
 
 セットアップが終わったら、1つずつ実行して動くことを確認してください（詳しい使い方は [README.md](README.md) 参照）。
 `(.venv)` が表示された状態のまま、1本実行して終了してから次を実行してください（3行まとめて貼り付けない）。
-構成Bの場合は、`1`フォルダに`cd`してから実行してください。
+`1`フォルダに`cd`してから実行してください。
 
 ```bash
 python 01_capture_augment.py
