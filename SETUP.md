@@ -175,8 +175,13 @@ python 03_inference.py
 
 ## Raspberry Piの場合
 
-手順は同じです（`winget`の代わりにRaspberry Pi OSに標準搭載のPython/Gitを使用）。
-Raspberry Pi OSの「ターミナル」アプリ（画面上部のアイコン、黒い四角のアイコン）を開いて、1行ずつ実行します。
+ラズパイにはモニター・キーボードを直接接続し、Pi本体のターミナルで作業します。
+PCとラズパイは有線LANで同じネットワークに接続。**お客様のPCには追加のソフトを一切インストールしません**
+（SFTP/VNCクライアントなどは使わず、Windows標準のファイル共有機能だけを使います）。
+
+### 1. コードの取得とライブラリ導入（ラズパイ本体で）
+
+Piに繋いだキーボード・モニターで、ターミナルアプリを開いて実行します。
 
 ```bash
 git clone https://github.com/inspectlab7q/ai-inspection-training.git
@@ -198,4 +203,76 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
-USB Webカメラを接続していれば、`03_inference.py` はPCと同じコードのまま動作します。
+**このステップにはPi自体のインターネット接続が必要です**（ライブラリはPCとPiでCPUの種類が違うため、PC側でインストールしたものをコピーしても動きません）。
+現場のネット回線に依存しないよう、この手順は事前に済ませておくことを推奨します（PC側のSETUP.mdと同じ理由）。
+
+### 2. ファイル共有(SMB)を設定する（最初の1回だけ）
+
+学習済みモデル（`model/model.tflite`）はGitには含まれていません（お客様のワーク固有の情報のため）。
+PCから直接コピーできるよう、Pi側にSMB（Windowsのファイル共有）を立てます。
+
+```bash
+sudo apt update
+```
+
+```bash
+sudo apt install -y samba samba-common-bin
+```
+
+```bash
+sudo smbpasswd -a ユーザー名
+```
+
+（Pcからアクセスする際のパスワードを聞かれるので設定。`ユーザー名`はPiのログインユーザー名に置き換える）
+
+設定ファイルを開いて、共有フォルダを追記します。
+
+```bash
+sudo nano /etc/samba/smb.conf
+```
+
+ファイルの一番下に、以下を追記して保存します（`Ctrl+O` → `Enter`で保存、`Ctrl+X`で終了）。
+
+```
+[ai-inspection]
+   path = /home/ユーザー名/ai-inspection-training
+   read only = no
+   guest ok = no
+```
+
+保存後、Sambaを再起動します。
+
+```bash
+sudo systemctl restart smbd
+```
+
+PiのIPアドレスを確認しておきます（この後Windows側で使います）。
+
+```bash
+hostname -I
+```
+
+### 3. PCからモデルをコピーする
+
+Windowsのエクスプローラーのアドレス欄に、確認したIPアドレスを使って以下のように入力します。
+
+```
+\\<Piのipアドレス>\ai-inspection
+```
+
+Piのユーザー名・先ほど設定したSMBパスワードを聞かれたら入力してください。共有フォルダが開いたら、
+PCで学習した `model/model.tflite` を、その中の`model`フォルダにドラッグ＆ドロップでコピーします。
+
+この設定は最初の1回だけでOKです。次回以降は、同じ手順でエクスプローラーからそのままアクセスできます。
+
+### 4. Pi側で実行
+
+Piのターミナル（モニター・キーボードで直接操作）に戻り、実行します。
+
+```bash
+python 03_inference.py
+```
+
+USB Webカメラを接続していれば、コードはPCと同じままで動作します。
+検査範囲(ROI)はPCとカメラの設置位置が変わるため、初回はPi側で選び直すことになります
+（`roi_config.json`が無ければ自動でライブ選択画面が出ます）。
