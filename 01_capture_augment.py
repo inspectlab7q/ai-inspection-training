@@ -9,6 +9,7 @@ Webカメラでワークを撮影し、OK/NG別に画像を保存する。
 操作方法:
   O キー : 今の映像を OK（良品）として保存
   N キー : 今の映像を NG（不良品）として保存
+  R キー : 検査範囲(ROI)を選び直す（間違えたときはこれでやり直せる）
   ESC    : 終了
 
 事前準備:
@@ -38,6 +39,25 @@ GOOD_DIR = os.path.join(DATASET_DIR, "good")  # OK画像の保存先
 BAD_DIR = os.path.join(DATASET_DIR, "bad")    # NG画像の保存先
 
 
+def select_roi(frame):
+    """マウスで検査範囲(ROI)を選択させ、roi_config.json に保存する（既存の設定があれば上書き）"""
+    print("マウスで検査範囲をドラッグして選択し、Enter（またはSpace）で確定してください。")
+    print("（何も選択せずEnterを押すと選び直しになります）")
+    x, y, w, h = cv2.selectROI("Select ROI", frame, showCrosshair=True)
+    cv2.destroyWindow("Select ROI")
+
+    if w == 0 or h == 0:
+        print("[エラー] 検査範囲が選択されませんでした。")
+        return None
+
+    roi = {"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
+    with open(ROI_CONFIG_PATH, "w", encoding="utf-8") as f:
+        json.dump(roi, f, ensure_ascii=False, indent=2)
+    print(f"[情報] 検査範囲を {ROI_CONFIG_PATH} に保存しました: {roi}")
+
+    return roi["x"], roi["y"], roi["w"], roi["h"]
+
+
 def load_or_select_roi(cap):
     """
     roi_config.json があれば読み込み、なければ最初のフレームでマウス選択させて保存する。
@@ -54,20 +74,12 @@ def load_or_select_roi(cap):
         print("[エラー] カメラからの映像取得に失敗しました。")
         sys.exit(1)
 
-    print("マウスで検査範囲をドラッグして選択し、Enter（またはSpace）で確定してください。")
-    x, y, w, h = cv2.selectROI("Select ROI", frame, showCrosshair=True)
-    cv2.destroyWindow("Select ROI")
-
-    if w == 0 or h == 0:
-        print("[エラー] 検査範囲が選択されませんでした。プログラムを終了します。")
+    roi = select_roi(frame)
+    if roi is None:
+        print("[エラー] 検査範囲が選択されなかったため、プログラムを終了します。")
         sys.exit(1)
 
-    roi = {"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
-    with open(ROI_CONFIG_PATH, "w", encoding="utf-8") as f:
-        json.dump(roi, f, ensure_ascii=False, indent=2)
-    print(f"[情報] 検査範囲を {ROI_CONFIG_PATH} に保存しました: {roi}")
-
-    return roi["x"], roi["y"], roi["w"], roi["h"]
+    return roi
 
 
 # ---------- 画像を水増しするための変換関数 ----------
@@ -142,7 +154,7 @@ def main():
     x, y, w, h = load_or_select_roi(cap)
 
     print("撮影を開始します。")
-    print("  O キー: OK(良品)として保存 / N キー: NG(不良品)として保存 / ESC: 終了")
+    print("  O キー: OK(良品)として保存 / N キー: NG(不良品)として保存 / R キー: 検査範囲を選び直す / ESC: 終了")
 
     while True:
         ret, frame = cap.read()
@@ -156,7 +168,7 @@ def main():
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
         cv2.putText(frame, f"OK: {good_count}  NG: {bad_count}", (20, 40),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
-        cv2.putText(frame, "O:OK保存  N:NG保存  ESC:終了", (20, frame.shape[0] - 20),
+        cv2.putText(frame, "O:OK保存  N:NG保存  R:範囲やり直し  ESC:終了", (20, frame.shape[0] - 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
         cv2.imshow("Capture", frame)
@@ -170,6 +182,10 @@ def main():
         elif key in (ord('n'), ord('N')):
             n = save_capture(roi_image, BAD_DIR)
             print(f"[保存] NG画像を {n} 枚保存しました。")
+        elif key in (ord('r'), ord('R')):
+            new_roi = select_roi(frame)
+            if new_roi is not None:
+                x, y, w, h = new_roi
         elif key == 27:  # ESC
             break
 
