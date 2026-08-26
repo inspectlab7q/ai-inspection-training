@@ -94,7 +94,27 @@ pip install -r requirements.txt
 
 インストールには数分かかります。ネット回線が遅い場合は特に、事前（前日まで）に済ませておくことを強く推奨します。
 
-## 6. 事前に確認しておくこと
+## 6. 学習済み重みの事前ダウンロード（重要）
+
+`02_train.py` はMobileNetV2の学習済み重み（約9MB）をインターネットから自動ダウンロードします。
+講習当日、現場のモバイルWi-Fiなど不安定な回線でこれを初めて行うと、ダウンロードが途中で切れて
+`OSError: Unable to synchronously open file` というエラーになることがあります。
+
+安定した回線がある事前準備の段階で、一度だけ以下を実行してキャッシュしておいてください
+（`(.venv)` を有効にした状態で実行）。
+
+```bash
+python -c "import tensorflow as tf; tf.keras.applications.MobileNetV2(weights='imagenet', include_top=False)"
+```
+
+エラーなく終了すればキャッシュ完了です。以降は`02_train.py`を回線なしで実行してもこのステップは通ります。
+
+> もし途中でこのエラーが出た場合は、キャッシュが壊れているので削除してやり直してください:
+> ```bash
+> rmdir /s /q "%USERPROFILE%\.keras\models"
+> ```
+
+## 7. 事前に確認しておくこと
 
 - **カメラのプライバシー設定**：Windowsの「設定 → プライバシーとセキュリティ → カメラ」で
   「デスクトップアプリがカメラにアクセスすることを許可する」がONになっているか確認してください。
@@ -103,7 +123,7 @@ pip install -r requirements.txt
   [Visual C++ 再頒布可能パッケージ](https://aka.ms/vs/17/release/vc_redist.x64.exe) を導入してください。
 - **Webカメラが複数ある場合**：各プログラムの `CONFIG` 内 `CAMERA_ID` を `0` → `1`, `2`… と変更してください。
 
-## 7. 動作確認
+## 8. 動作確認
 
 セットアップが終わったら、順番に実行して動くことを確認してください（詳しい使い方は [README.md](README.md) 参照）。
 `(.venv)` が表示された状態のまま実行してください。

@@ -173,19 +173,23 @@ def main():
         if CAMERA_FLIP is not None:
             frame = cv2.flip(frame, CAMERA_FLIP)
 
+        # 保存用のROI画像は、枠や文字を描画する前のきれいな映像から切り出す
+        roi_image = frame[y:y + h, x:x + w].copy()
+
         good_count = count_images(GOOD_DIR)
         bad_count = count_images(BAD_DIR)
 
-        cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-        cv2.putText(frame, f"OK: {good_count}  NG: {bad_count}", (20, 40),
+        # 画面表示用は別のコピーに描画する（frame自体には描画しない）
+        display_frame = frame.copy()
+        cv2.rectangle(display_frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+        cv2.putText(display_frame, f"OK: {good_count}  NG: {bad_count}", (20, 40),
                     cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 255), 2)
-        cv2.putText(frame, "O:OK保存  N:NG保存  R:範囲やり直し  ESC:終了", (20, frame.shape[0] - 20),
+        cv2.putText(display_frame, "O:OK保存  N:NG保存  R:範囲やり直し  ESC:終了", (20, frame.shape[0] - 20),
                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
-        cv2.imshow("Capture", frame)
+        cv2.imshow("Capture", display_frame)
 
         key = cv2.waitKey(1) & 0xFF
-        roi_image = frame[y:y + h, x:x + w]
 
         if key in (ord('o'), ord('O')):
             n = save_capture(roi_image, GOOD_DIR)

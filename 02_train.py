@@ -57,9 +57,16 @@ def build_datasets():
 
 
 def build_model():
-    base_model = tf.keras.applications.MobileNetV2(
-        input_shape=IMG_SIZE + (3,), include_top=False, weights="imagenet"
-    )
+    try:
+        base_model = tf.keras.applications.MobileNetV2(
+            input_shape=IMG_SIZE + (3,), include_top=False, weights="imagenet"
+        )
+    except OSError:
+        print("[エラー] 学習済み重み(MobileNetV2)の読み込みに失敗しました。")
+        print("回線が不安定なとき、ダウンロードが途中で切れてキャッシュファイルが壊れることがあります。")
+        print(r"次のコマンドでキャッシュを削除してから、もう一度実行してください:")
+        print(r'  rmdir /s /q "%USERPROFILE%\.keras\models"')
+        sys.exit(1)
     base_model.trainable = False  # ベースモデルは凍結（学習しない）→ 少ない画像枚数でも学習できる
 
     model = models.Sequential([
