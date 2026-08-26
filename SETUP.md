@@ -58,17 +58,24 @@ git --version
 
 ## 3. プログラムの取得
 
-作業したいフォルダに移動してから（例：デスクトップに置く場合）、以下を実行します。
+作業したいフォルダに移動してから（例：デスクトップに置く場合）、**1行ずつ**Enterを押して実行します
+（複数行まとめて貼り付けると、`git clone`の途中経過表示に紛れて次の行が実行されないことがあるため）。
 
 ```bash
 cd Desktop
+```
+
+```bash
 git clone https://github.com/inspectlab7q/ai-inspection-training.git
+```
+
+`ai-inspection-training` フォルダがデスクトップにできていれば成功です。続けて移動します。
+
+```bash
 cd ai-inspection-training
 ```
 
-`ai-inspection-training` フォルダがデスクトップにできていれば成功です。
-以降のコマンドは、すべてこの `ai-inspection-training` フォルダの中で実行します
-（`cd ai-inspection-training` を実行した直後の状態）。
+以降のコマンドは、すべてこの `ai-inspection-training` フォルダの中で実行します。
 
 ## 4. 仮想環境(venv)の作成
 
@@ -77,6 +84,9 @@ PCに他の用途でPythonを使っている場合、ライブラリのバージ
 
 ```bash
 python -m venv .venv
+```
+
+```bash
 .venv\Scripts\activate
 ```
 
@@ -125,12 +135,18 @@ python -c "import tensorflow as tf; tf.keras.applications.MobileNetV2(weights='i
 
 ## 8. 動作確認
 
-セットアップが終わったら、順番に実行して動くことを確認してください（詳しい使い方は [README.md](README.md) 参照）。
-`(.venv)` が表示された状態のまま実行してください。
+セットアップが終わったら、1つずつ実行して動くことを確認してください（詳しい使い方は [README.md](README.md) 参照）。
+`(.venv)` が表示された状態のまま、1本実行して終了してから次を実行してください（3行まとめて貼り付けない）。
 
 ```bash
 python 01_capture_augment.py
+```
+
+```bash
 python 02_train.py
+```
+
+```bash
 python 03_inference.py
 ```
 
@@ -139,13 +155,25 @@ python 03_inference.py
 ## Raspberry Piの場合
 
 手順は同じです（`winget`の代わりにRaspberry Pi OSに標準搭載のPython/Gitを使用）。
-Raspberry Pi OSの「ターミナル」アプリ（画面上部のアイコン、黒い四角のアイコン）を開いて実行します。
+Raspberry Pi OSの「ターミナル」アプリ（画面上部のアイコン、黒い四角のアイコン）を開いて、1行ずつ実行します。
 
 ```bash
 git clone https://github.com/inspectlab7q/ai-inspection-training.git
+```
+
+```bash
 cd ai-inspection-training
+```
+
+```bash
 python -m venv .venv
+```
+
+```bash
 source .venv/bin/activate
+```
+
+```bash
 pip install -r requirements.txt
 ```
 
