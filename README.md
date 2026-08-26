@@ -78,6 +78,34 @@ python 03_inference.py
 | `03_inference.py` | `MODEL_PATH` | 学習済みモデルのパス |
 | `03_inference.py` | `THRESHOLD` | OK/NG判定のしきい値（0〜1、大きいほどOK判定が厳しくなる） |
 
+## フォルダ構成（実行後に生成されるファイル）
+
+```
+ai-inspection-training/
+├── roi_config.json          # 検査範囲(ROI)。01/03で共有（01実行時 or Rキーで作成・更新）
+├── dataset/train/
+│   ├── good/                 # 01で撮影したOK画像（水増し込み、撮影のたびに追加されていく）
+│   └── bad/                  # 01で撮影したNG画像（水増し込み、撮影のたびに追加されていく）
+└── model/
+    ├── model.keras            # 02が出力する学習済みモデル（Keras形式）
+    └── model.tflite           # 02が出力する軽量モデル。03が読み込む
+```
+
+## 学習をやり直したいとき
+
+- **画像を追加してそのまま再学習する場合**：フォルダを消す必要はない。`01_capture_augment.py`で追加撮影 →
+  `02_train.py`を再実行するだけでよい（`model.keras`・`model.tflite`は実行のたびに自動で上書きされる）。
+- **撮り直して一から学習し直したい場合**（例: 間違った画像が混ざった、ワークを変えた）：
+  `dataset/train/good`・`dataset/train/bad`の中身は自動では消えないので、手動で削除してから撮り直す。
+
+  ```bash
+  rmdir /s /q dataset\train\good
+  rmdir /s /q dataset\train\bad
+  ```
+
+- **検査範囲(ROI)を変えたい場合**：`01_capture_augment.py`実行中に`R`キーでいつでも選び直せる
+  （`roi_config.json`が自動で上書きされるので、こちらは手動削除不要）。
+
 ## 注意点
 
 - `roi_config.json`・`dataset/`・`model/` は現場ごとに生成される個別データのため、Gitでは管理しない（`.gitignore`済み）
