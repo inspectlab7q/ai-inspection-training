@@ -47,25 +47,34 @@ BAD_DIR = os.path.join(DATASET_DIR, "bad")    # NG画像の保存先
 
 def select_roi_live(cap, window_name="Select ROI"):
     """
-    ライブ映像を見ながらマウスドラッグで範囲を選ばせる（cv2.selectROIは静止画1枚しか
+    ライブ映像を見ながら2回のクリックで範囲を選ばせる（cv2.selectROIは静止画1枚しか
     見せないため、ワークの位置合わせがしづらい問題への対応）。
-    Enter/Spaceで確定、ESCでキャンセル。戻り値は (x, y, w, h) または None。
+    1回目のクリック=始点、マウスを動かすと範囲が追従、2回目のクリック=終点でロック。
+    ロック後にもう一度クリックするとやり直せる。Enter/Spaceで確定、ESCでキャンセル。
+    戻り値は (x, y, w, h) または None。
     """
-    state = {"start": None, "end": None}
+    state = {"start": None, "end": None, "locked": False}
 
     def on_mouse(event, x, y, flags, param):
         if event == cv2.EVENT_LBUTTONDOWN:
-            state["start"] = (x, y)
-            state["end"] = (x, y)
-        elif event == cv2.EVENT_MOUSEMOVE and state["start"] is not None:
-            state["end"] = (x, y)
-        elif event == cv2.EVENT_LBUTTONUP:
-            state["end"] = (x, y)
+            if state["start"] is None or state["locked"]:
+                # 1回目のクリック（またはロック後の再クリック）: 始点をセットしてやり直す
+                state["start"] = (x, y)
+                state["end"] = (x, y)
+                state["locked"] = False
+            else:
+                # 2回目のクリック: 終点を確定してロックする
+                state["end"] = (x, y)
+                state["locked"] = True
+        elif event == cv2.EVENT_MOUSEMOVE:
+            if state["start"] is not None and not state["locked"]:
+                state["end"] = (x, y)
 
     cv2.namedWindow(window_name)
     cv2.setMouseCallback(window_name, on_mouse)
 
-    print("マウスをドラッグして範囲を選択し、Enter（またはSpace）で確定、ESCでキャンセルしてください。")
+    print("1回目クリック:始点 → マウス移動 → 2回目クリック:終点確定 → Enter/Spaceで選択確定、ESCでキャンセル。")
+    print("（確定前ならもう一度クリックでやり直せます）")
 
     result = None
     while True:
@@ -78,8 +87,12 @@ def select_roi_live(cap, window_name="Select ROI"):
 
         display = frame.copy()
         if state["start"] and state["end"]:
-            cv2.rectangle(display, state["start"], state["end"], (0, 255, 255), 2)
-        cv2.putText(display, "ドラッグで範囲選択 → Enter/Space:確定  ESC:キャンセル",
+            color = (0, 200, 0) if state["locked"] else (0, 255, 255)
+            cv2.rectangle(display, state["start"], state["end"], color, 2)
+        guide = "2回目クリックで終点確定 → Enter/Space:選択確定" if state["locked"] else \
+            "1回目クリック:始点 → 2回目クリック:終点" if state["start"] is None else \
+            "マウス移動で範囲追従 → クリックで終点確定"
+        cv2.putText(display, f"{guide}  ESC:キャンセル",
                     (20, display.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
         cv2.imshow(window_name, display)
