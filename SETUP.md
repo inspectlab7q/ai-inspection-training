@@ -112,11 +112,16 @@ python -m venv .venv
 
 ## 4. ライブラリの導入
 
-`1`か`2`のどちらかに一度`cd`してから実行します（`requirements.txt`の内容は同じなので片方でOK）。
+```bash
+cd 1
+```
 
 ```bash
 pip install -r requirements.txt
 ```
+
+STEP1・STEP2の`requirements.txt`は中身が同じなので、`1`側で1回入れれば`2`でも使えます
+（`2`フォルダに`cd`して入れ直す必要はありません）。
 
 インストールには数分かかります。ネット回線が遅い場合は特に、事前（前日まで）に済ませておくことを強く推奨します。
 
@@ -152,8 +157,7 @@ python -c "import tensorflow as tf; tf.keras.applications.MobileNetV2(weights='i
 ## 7. 動作確認
 
 セットアップが終わったら、1つずつ実行して動くことを確認してください（詳しい使い方は [README.md](README.md) 参照）。
-`(.venv)` が表示された状態のまま、1本実行して終了してから次を実行してください（3行まとめて貼り付けない）。
-`1`フォルダに`cd`してから実行してください。
+`(.venv)` が表示され、`1`フォルダにいる状態のまま、1本実行して終了してから次を実行してください（3行まとめて貼り付けない）。
 
 ```bash
 python 01_capture_augment.py
