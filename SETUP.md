@@ -56,10 +56,16 @@ git --version
 
 `git version 2.x.x` のように表示されればOK。
 
-## 3. プログラムの取得
+## 3. プログラムの取得と仮想環境の準備
 
-作業したいフォルダに移動してから（例：デスクトップに置く場合）、**1行ずつ**Enterを押して実行します
-（複数行まとめて貼り付けると、`git clone`の途中経過表示に紛れて次の行が実行されないことがあるため）。
+STEP1（このリポジトリ）だけを使うか、STEP2（[ai-inspection-multiscene](https://github.com/inspectlab7q/ai-inspection-multiscene)）も
+一緒に使うかで、フォルダの作り方が少し変わります。**STEP1・STEP2の`requirements.txt`は中身が同じ**なので、
+両方使う場合は仮想環境を1つにまとめられます。
+
+**1行ずつ**Enterを押して実行してください（複数行まとめて貼り付けると、`git clone`の途中経過表示に
+紛れて次の行が実行されないことがあるため）。
+
+### A. STEP1だけ使う場合
 
 ```bash
 cd Desktop
@@ -69,18 +75,9 @@ cd Desktop
 git clone https://github.com/inspectlab7q/ai-inspection-training.git
 ```
 
-`ai-inspection-training` フォルダがデスクトップにできていれば成功です。続けて移動します。
-
 ```bash
 cd ai-inspection-training
 ```
-
-以降のコマンドは、すべてこの `ai-inspection-training` フォルダの中で実行します。
-
-## 4. 仮想環境(venv)の作成
-
-PCに他の用途でPythonを使っている場合、ライブラリのバージョンがぶつかることがあるため、
-このプロジェクト専用の仮想環境を作って作業します。
 
 ```bash
 python -m venv .venv
@@ -90,13 +87,59 @@ python -m venv .venv
 .venv\Scripts\activate
 ```
 
-`activate`を実行した後、プロンプトの先頭に `(.venv)` と表示されればOKです（例: `(.venv) C:\...\ai-inspection-training>`）。
+### B. STEP1とSTEP2を両方使う場合（推奨構成）
+
+親フォルダを1つ作り、その中にSTEP1・STEP2をそれぞれサブフォルダとして`clone`し、
+仮想環境は親フォルダに1つだけ作ります。
+
+```
+Desktop\
+  ai-inspection\        ← 親フォルダ
+    .venv\                ← 仮想環境はここに1つだけ
+    1\                     ← STEP1 (ai-inspection-training)
+    2\                     ← STEP2 (ai-inspection-multiscene)
+```
+
+```bash
+cd Desktop
+```
+
+```bash
+mkdir ai-inspection
+```
+
+```bash
+cd ai-inspection
+```
+
+```bash
+git clone https://github.com/inspectlab7q/ai-inspection-training.git 1
+```
+
+```bash
+git clone https://github.com/inspectlab7q/ai-inspection-multiscene.git 2
+```
+
+```bash
+python -m venv .venv
+```
+
+```bash
+.venv\Scripts\activate
+```
+
+どちらの場合も、`activate`を実行した後にプロンプトの先頭へ `(.venv)` と表示されればOKです。
 以降のコマンドは、必ずこの `(.venv)` が表示された状態で実行してください。
 
-> コマンドプロンプトを一度閉じて後日また作業する場合は、`ai-inspection-training` フォルダに移動した上で、
+> コマンドプロンプトを一度閉じて後日また作業する場合は、Aなら`ai-inspection-training`フォルダ、
+> Bなら`ai-inspection`フォルダ（`1`や`2`の中ではなく、その一つ上）に移動した上で、
 > もう一度 `.venv\Scripts\activate` を実行してください（`python -m venv .venv` は最初の1回だけでよい）。
+> Bの構成でSTEP1・STEP2のプログラムを実行するときは、`(.venv)`を有効にしたまま
+> `cd 1`（STEP1）または`cd 2`（STEP2）で該当フォルダに移動してから実行してください。
 
-## 5. ライブラリの導入
+## 4. ライブラリの導入
+
+Aの場合はそのまま、Bの場合は`1`か`2`のどちらかに一度`cd`してから実行します（内容は同じなので片方でOK）。
 
 ```bash
 pip install -r requirements.txt
@@ -104,7 +147,7 @@ pip install -r requirements.txt
 
 インストールには数分かかります。ネット回線が遅い場合は特に、事前（前日まで）に済ませておくことを強く推奨します。
 
-## 6. 学習済み重みの事前ダウンロード（重要）
+## 5. 学習済み重みの事前ダウンロード（重要）
 
 `02_train.py` はMobileNetV2の学習済み重み（約9MB）をインターネットから自動ダウンロードします。
 講習当日、現場のモバイルWi-Fiなど不安定な回線でこれを初めて行うと、ダウンロードが途中で切れて
@@ -124,7 +167,7 @@ python -c "import tensorflow as tf; tf.keras.applications.MobileNetV2(weights='i
 > rmdir /s /q "%USERPROFILE%\.keras\models"
 > ```
 
-## 7. 事前に確認しておくこと
+## 6. 事前に確認しておくこと
 
 - **カメラのプライバシー設定**：Windowsの「設定 → プライバシーとセキュリティ → カメラ」で
   「デスクトップアプリがカメラにアクセスすることを許可する」がONになっているか確認してください。
@@ -133,10 +176,11 @@ python -c "import tensorflow as tf; tf.keras.applications.MobileNetV2(weights='i
   [Visual C++ 再頒布可能パッケージ](https://aka.ms/vs/17/release/vc_redist.x64.exe) を導入してください。
 - **Webカメラが複数ある場合**：各プログラムの `CONFIG` 内 `CAMERA_ID` を `0` → `1`, `2`… と変更してください。
 
-## 8. 動作確認
+## 7. 動作確認
 
 セットアップが終わったら、1つずつ実行して動くことを確認してください（詳しい使い方は [README.md](README.md) 参照）。
 `(.venv)` が表示された状態のまま、1本実行して終了してから次を実行してください（3行まとめて貼り付けない）。
+構成Bの場合は、`1`フォルダに`cd`してから実行してください。
 
 ```bash
 python 01_capture_augment.py
