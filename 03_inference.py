@@ -28,6 +28,8 @@ IMG_SIZE = (224, 224)                # モデルの入力サイズ（02_train.py
 THRESHOLD = 0.5                      # OK/NGの判定しきい値（0.0〜1.0）。大きくするほどOK判定が厳しくなる
 FRAME_WIDTH = 1280                   # カメラの取得解像度（幅）
 FRAME_HEIGHT = 720                   # カメラの取得解像度（高さ）
+CAMERA_FLIP = -1                     # カメラ映像の反転。None=反転なし / 0=上下反転 / 1=左右反転 / -1=上下左右反転
+                                      # （カメラの取り付け向きに合わせて変える。01_capture_augment.py と揃えること）
 ROI_CONFIG_PATH = "roi_config.json"  # 検査範囲(ROI)の保存先。01_capture_augment.py と共有する
 # ================================================================
 
@@ -55,6 +57,8 @@ def load_or_select_roi(cap):
 
     print(f"[情報] {ROI_CONFIG_PATH} が見つからないため、検査範囲を選択します。")
     ret, frame = cap.read()
+    if ret and CAMERA_FLIP is not None:
+        frame = cv2.flip(frame, CAMERA_FLIP)
     if not ret:
         print("[エラー] カメラからの映像取得に失敗しました。")
         sys.exit(1)
@@ -110,6 +114,9 @@ def main():
         if not ret:
             print("[エラー] カメラからの映像取得に失敗しました。")
             break
+
+        if CAMERA_FLIP is not None:
+            frame = cv2.flip(frame, CAMERA_FLIP)
 
         roi_image = frame[y:y + h, x:x + w]
         score = predict(interpreter, roi_image)
