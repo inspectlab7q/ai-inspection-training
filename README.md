@@ -15,6 +15,10 @@
 
 ## 環境構築
 
+初めてこのPCで使う場合は [SETUP.md](SETUP.md)（Python・Gitのインストールから`git clone`まで）を参照。
+
+導入済みの環境では、リポジトリ直下で以下を実行するだけでよい。
+
 ```bash
 pip install -r requirements.txt
 ```
