@@ -110,6 +110,33 @@ python -m venv .venv
 > STEP1・STEP2のプログラムを実行するときは、`(.venv)`を有効にしたまま
 > `cd 1`（STEP1）または`cd 2`（STEP2）で該当フォルダに移動してから実行してください。
 
+### 起動用ショートカット（あると便利）
+
+毎回`.venv\Scripts\activate`→`cd 1`と打つのが面倒な場合、以下の内容をメモ帳に貼り付けて、
+`ai-inspection`フォルダ直下（`.venv`と同じ階層）に`start.bat`という名前で保存しておくと、
+ダブルクリックだけでvenv起動→STEP1/STEP2選択まで一発で行えます
+（メモ帳の保存時、ファイルの種類を「すべてのファイル」にし、拡張子が`.txt`にならないよう注意）。
+
+```bat
+@echo off
+cd /d "%~dp0"
+call .venv\Scripts\activate.bat
+echo.
+echo  [1] STEP1 (ai-inspection-training)
+echo  [2] STEP2 (ai-inspection-multiscene)
+echo.
+choice /c 12 /n /m "Which one? (1 or 2): "
+if errorlevel 2 (
+    cd 2
+) else (
+    cd 1
+)
+cmd /k
+```
+
+この`start.bat`を右クリック→「ショートカットの作成」し、できたショートカットをデスクトップに置けば、
+デスクトップからダブルクリックするだけで起動できる。
+
 ## 4. ライブラリの導入
 
 ```bash
