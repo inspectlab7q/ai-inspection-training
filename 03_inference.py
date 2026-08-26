@@ -45,9 +45,65 @@ def load_interpreter(model_path):
     return interpreter
 
 
+def select_roi_live(cap, window_name="Select ROI"):
+    """
+    ライブ映像を見ながらマウスドラッグで範囲を選ばせる（cv2.selectROIは静止画1枚しか
+    見せないため、ワークの位置合わせがしづらい問題への対応）。
+    Enter/Spaceで確定、ESCでキャンセル。戻り値は (x, y, w, h) または None。
+    """
+    state = {"start": None, "end": None}
+
+    def on_mouse(event, x, y, flags, param):
+        if event == cv2.EVENT_LBUTTONDOWN:
+            state["start"] = (x, y)
+            state["end"] = (x, y)
+        elif event == cv2.EVENT_MOUSEMOVE and state["start"] is not None:
+            state["end"] = (x, y)
+        elif event == cv2.EVENT_LBUTTONUP:
+            state["end"] = (x, y)
+
+    cv2.namedWindow(window_name)
+    cv2.setMouseCallback(window_name, on_mouse)
+
+    print("マウスをドラッグして範囲を選択し、Enter（またはSpace）で確定、ESCでキャンセルしてください。")
+
+    result = None
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("[エラー] カメラからの映像取得に失敗しました。")
+            break
+        if CAMERA_FLIP is not None:
+            frame = cv2.flip(frame, CAMERA_FLIP)
+
+        display = frame.copy()
+        if state["start"] and state["end"]:
+            cv2.rectangle(display, state["start"], state["end"], (0, 255, 255), 2)
+        cv2.putText(display, "ドラッグで範囲選択 → Enter/Space:確定  ESC:キャンセル",
+                    (20, display.shape[0] - 20), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+
+        cv2.imshow(window_name, display)
+        key = cv2.waitKey(1) & 0xFF
+
+        if key in (13, 32):  # Enter or Space
+            if state["start"] and state["end"]:
+                x1, y1 = state["start"]
+                x2, y2 = state["end"]
+                x, y = min(x1, x2), min(y1, y2)
+                w, h = abs(x2 - x1), abs(y2 - y1)
+                if w > 0 and h > 0:
+                    result = (x, y, w, h)
+                    break
+        elif key == 27:  # ESC
+            break
+
+    cv2.destroyWindow(window_name)
+    return result
+
+
 def load_or_select_roi(cap):
     """
-    roi_config.json があれば読み込み、なければ最初のフレームでマウス選択させて保存する。
+    roi_config.json があれば読み込み、なければライブ映像でマウス選択させて保存する。
     01_capture_augment.py と同じファイルを共有するので、撮影時と同じ範囲で判定できる。
     """
     if os.path.exists(ROI_CONFIG_PATH):
@@ -56,21 +112,12 @@ def load_or_select_roi(cap):
         return roi["x"], roi["y"], roi["w"], roi["h"]
 
     print(f"[情報] {ROI_CONFIG_PATH} が見つからないため、検査範囲を選択します。")
-    ret, frame = cap.read()
-    if ret and CAMERA_FLIP is not None:
-        frame = cv2.flip(frame, CAMERA_FLIP)
-    if not ret:
-        print("[エラー] カメラからの映像取得に失敗しました。")
-        sys.exit(1)
-
-    print("マウスで検査範囲をドラッグして選択し、Enter（またはSpace）で確定してください。")
-    x, y, w, h = cv2.selectROI("Select ROI", frame, showCrosshair=True)
-    cv2.destroyWindow("Select ROI")
-
-    if w == 0 or h == 0:
+    roi_rect = select_roi_live(cap)
+    if roi_rect is None:
         print("[エラー] 検査範囲が選択されませんでした。プログラムを終了します。")
         sys.exit(1)
 
+    x, y, w, h = roi_rect
     roi = {"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
     with open(ROI_CONFIG_PATH, "w", encoding="utf-8") as f:
         json.dump(roi, f, ensure_ascii=False, indent=2)
