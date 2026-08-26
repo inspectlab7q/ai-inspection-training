@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Site-specific / generated at training time (not shared via git)
+roi_config.json
+dataset/
+model/
+*.h5
+*.tflite
+
+# Old/unrelated artifacts kept locally but not tracked
+output.avi
+*.xlsx
+NGimage/
