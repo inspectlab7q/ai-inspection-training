@@ -62,6 +62,7 @@ python 03_inference.py
 ```
 
 - `model/model.tflite` を読み込み、カメラ映像上にOK/NGとスコアをリアルタイム表示
+- 検査範囲を選び間違えたときは `R`キー でいつでも選び直せる（`roi_config.json`が上書きされる）
 - `ESC`キーで終了
 - **PCでもRaspberry Piでも同じコードがそのまま動く**（USB Webカメラ使用を前提）
 

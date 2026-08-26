@@ -7,6 +7,10 @@ Windows PCでもRaspberry Piでも、CONFIGの値を変えるだけで同じコ�
 事前準備:
   - 02_train.py で作成したモデル (model/model.tflite) が必要
   - 検査範囲(ROI)が未設定の場合は、起動時にマウスで範囲を選択する
+
+操作方法:
+  R キー : 検査範囲(ROI)を選び直す（PCから転送してカメラ位置が変わった場合など）
+  ESC    : 終了
 """
 
 import json
@@ -123,21 +127,12 @@ def select_roi_live(cap, window_name="Select ROI"):
     return result
 
 
-def load_or_select_roi(cap):
-    """
-    roi_config.json があれば読み込み、なければライブ映像でマウス選択させて保存する。
-    01_capture_augment.py と同じファイルを共有するので、撮影時と同じ範囲で判定できる。
-    """
-    if os.path.exists(ROI_CONFIG_PATH):
-        with open(ROI_CONFIG_PATH, "r", encoding="utf-8") as f:
-            roi = json.load(f)
-        return roi["x"], roi["y"], roi["w"], roi["h"]
-
-    print(f"[情報] {ROI_CONFIG_PATH} が見つからないため、検査範囲を選択します。")
+def select_roi(cap):
+    """マウスで検査範囲(ROI)を選択させ、roi_config.json に保存する（既存の設定があれば上書き）"""
     roi_rect = select_roi_live(cap)
     if roi_rect is None:
-        print("[エラー] 検査範囲が選択されませんでした。プログラムを終了します。")
-        sys.exit(1)
+        print("[エラー] 検査範囲が選択されませんでした。")
+        return None
 
     x, y, w, h = roi_rect
     roi = {"x": int(x), "y": int(y), "w": int(w), "h": int(h)}
@@ -146,6 +141,26 @@ def load_or_select_roi(cap):
     print(f"[情報] 検査範囲を {ROI_CONFIG_PATH} に保存しました: {roi}")
 
     return roi["x"], roi["y"], roi["w"], roi["h"]
+
+
+def load_or_select_roi(cap):
+    """
+    roi_config.json があれば読み込み、なければライブ映像でマウス選択させて保存する。
+    01_capture_augment.py と同じファイルを共有するので、撮影時と同じ範囲で判定できる
+    （PCで撮影しラズパイに転送した場合など、カメラの設置位置が変わったときはRキーで選び直せる）。
+    """
+    if os.path.exists(ROI_CONFIG_PATH):
+        with open(ROI_CONFIG_PATH, "r", encoding="utf-8") as f:
+            roi = json.load(f)
+        return roi["x"], roi["y"], roi["w"], roi["h"]
+
+    print(f"[情報] {ROI_CONFIG_PATH} が見つからないため、検査範囲を選択します。")
+    roi = select_roi(cap)
+    if roi is None:
+        print("[エラー] 検査範囲が選択されなかったため、プログラムを終了します。")
+        sys.exit(1)
+
+    return roi
 
 
 def predict(interpreter, roi_image):
@@ -177,6 +192,7 @@ def main():
     x, y, w, h = load_or_select_roi(cap)
 
     print("判定を開始します。終了するにはウィンドウを選んで ESC キーを押してください。")
+    print("検査範囲がずれている場合は R キーで選び直せます。")
 
     while True:
         ret, frame = cap.read()
@@ -198,8 +214,13 @@ def main():
 
         cv2.imshow("AI Inspection", frame)
 
-        if cv2.waitKey(1) & 0xFF == 27:  # ESC
+        key = cv2.waitKey(1) & 0xFF
+        if key == 27:  # ESC
             break
+        elif key in (ord('r'), ord('R')):
+            new_roi = select_roi(cap)
+            if new_roi is not None:
+                x, y, w, h = new_roi
 
     cap.release()
     cv2.destroyAllWindows()

@@ -279,7 +279,7 @@ PiのIPアドレスを確認しておきます（この後Windows側で使いま
 hostname -I
 ```
 
-### 3. PCからモデルをコピーする
+### 3. PCからモデルと設定をコピーする
 
 Windowsのエクスプローラーのアドレス欄に、確認したIPアドレスを使って以下のように入力します。
 
@@ -294,9 +294,14 @@ Piのユーザー名・先ほど設定したSMBパスワードを聞かれたら
 
 1. この画面（`ai-inspection`直下）で右クリック → 新規作成 → フォルダー → 名前を`model`にする
 2. PC側の`ai-inspection-training\model\model.tflite`（`02_train.py`が出力したもの）を、その`model`フォルダにドラッグ＆ドロップでコピーする
+3. PC側の`ai-inspection-training\roi_config.json`も、共有フォルダのルート（`ai-inspection`直下、`model`と同じ階層）にコピーする
 
 この設定は最初の1回だけでOKです。次回以降は、同じ手順でエクスプローラーからそのままアクセスできます
 （2回目以降は`model`フォルダが既にあるので、作成は不要）。
+
+> `roi_config.json`はPC上でのカメラ位置を基準にした値です。ラズパイ側でカメラの設置位置が変わっていると
+> 検査範囲がずれることがありますが、`03_inference.py`実行中に`R`キーを押せばその場で選び直せます
+> （ファイルを手動で消す必要はありません）。
 
 ### 4. Pi側で実行
 
@@ -307,8 +312,37 @@ python 03_inference.py
 ```
 
 USB Webカメラを接続していれば、コードはPCと同じままで動作します。
-検査範囲(ROI)はPCとカメラの設置位置が変わるため、初回はPi側で選び直すことになります
-（`roi_config.json`が無ければ自動でライブ選択画面が出ます）。
+検査範囲がPC側と合わない場合は、`R`キーでその場でPi用に選び直してください。
+
+### デスクトップからダブルクリックで実行できるようにする（あると便利）
+
+毎回ターミナルで`cd`・`source .venv/bin/activate`・`python 03_inference.py`と打つのが大変な場合、
+デスクトップにアイコンを1つ作っておくと、ダブルクリックだけで起動できます。
+
+```bash
+nano ~/Desktop/ai-inspection.desktop
+```
+
+以下を貼り付けて保存します（`Ctrl+O` → `Enter`で保存、`Ctrl+X`で終了。`ユーザー名`は実際の値に置き換える）。
+
+```
+[Desktop Entry]
+Type=Application
+Name=AI Inspection
+Comment=Run 03_inference.py
+Exec=bash -c "cd /home/ユーザー名/ai-inspection-training && source .venv/bin/activate && python 03_inference.py; echo; echo Press Enter to close...; read"
+Terminal=true
+Icon=camera-photo
+```
+
+実行権限を付けます。
+
+```bash
+chmod +x ~/Desktop/ai-inspection.desktop
+```
+
+デスクトップのアイコンをダブルクリックすると起動します。初回だけ「信頼して実行しますか」といった
+確認ダイアログが出ることがあるので、そのときは「実行」を選んでください。
 
 ### 時間短縮したい場合：SDカードを複製する
 
