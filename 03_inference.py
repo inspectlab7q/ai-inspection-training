@@ -13,6 +13,10 @@ import json
 import os
 import sys
 
+# cv2をインポートする前に設定する必要がある（Windows特有のカメラ起動遅延対策）
+# https://github.com/opencv/opencv/issues/17687
+os.environ.setdefault("OPENCV_VIDEOIO_MSMF_ENABLE_HW_TRANSFORMS", "0")
+
 import cv2
 import numpy as np
 import tensorflow as tf
