@@ -28,7 +28,19 @@ git clone https://github.com/inspectlab7q/ai-inspection-training.git
 cd ai-inspection-training
 ```
 
-## 4. ライブラリの導入
+## 4. 仮想環境(venv)の作成
+
+PCに他の用途でPythonを使っている場合、ライブラリのバージョンがぶつかることがあるため、
+このプロジェクト専用の仮想環境を作って作業する。
+
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+（`activate`後、プロンプトの先頭に `(.venv)` と表示されればOK。以降のコマンドはこの状態で実行する）
+
+## 5. ライブラリの導入
 
 ```bash
 pip install -r requirements.txt
@@ -36,7 +48,7 @@ pip install -r requirements.txt
 
 インストールには数分かかります。ネット回線が遅い場合は特に、事前（前日まで）に済ませておくことを強く推奨します。
 
-## 5. 事前に確認しておくこと
+## 6. 事前に確認しておくこと
 
 - **カメラのプライバシー設定**：Windowsの「設定 → プライバシーとセキュリティ → カメラ」で
   「デスクトップアプリがカメラにアクセスすることを許可する」がONになっているか確認してください。
@@ -45,7 +57,7 @@ pip install -r requirements.txt
   [Visual C++ 再頒布可能パッケージ](https://aka.ms/vs/17/release/vc_redist.x64.exe) を導入してください。
 - **Webカメラが複数ある場合**：各プログラムの `CONFIG` 内 `CAMERA_ID` を `0` → `1`, `2`… と変更してください。
 
-## 6. 動作確認
+## 7. 動作確認
 
 セットアップが終わったら、順番に実行して動くことを確認してください（詳しい使い方は [README.md](README.md) 参照）。
 
@@ -64,6 +76,8 @@ python 03_inference.py
 ```bash
 git clone https://github.com/inspectlab7q/ai-inspection-training.git
 cd ai-inspection-training
+python -m venv .venv
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
