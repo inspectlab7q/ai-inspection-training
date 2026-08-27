@@ -27,7 +27,8 @@
 pip install -r requirements.txt
 ```
 
-Raspberry Pi（64bit OS）でも同じコマンドで導入できる。
+Raspberry Pi（64bit OS）でも同じコマンドで導入できる。Raspberry Pi本体での準備手順（SMB設定・SDカード複製など）や、
+STEP1・STEP2を同じPCで併用する場合の構成は [INSTRUCTOR.md](INSTRUCTOR.md)（講師用ノート）を参照。
 
 ## 使い方（当日の流れ）
 
